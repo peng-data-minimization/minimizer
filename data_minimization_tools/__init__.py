@@ -1,7 +1,7 @@
 from collections import Iterable
 import statistics
 from typing import Callable
-from data_minimization_tools.utils import check_input_type
+from utils import check_input_type
 import hashlib
 import datetime
 
