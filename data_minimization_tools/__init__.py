@@ -1,9 +1,10 @@
-from collections import Iterable
-import statistics
-from typing import Callable
-from utils import check_input_type
-import hashlib
 import datetime
+import hashlib
+import statistics
+from collections import Iterable
+from typing import Callable
+
+from .utils import check_input_type
 
 
 @check_input_type
