@@ -24,7 +24,6 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
-      working-directory: data_minimization_tools
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest

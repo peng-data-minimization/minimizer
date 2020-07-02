@@ -2,7 +2,7 @@ import unittest
 
 from ddt import ddt, data, unpack
 
-import data_minimization_tools
+from data_minimization_tools import reduce_to_median
 
 
 @ddt
@@ -22,8 +22,8 @@ class MyTestCase(unittest.TestCase):
             {"A": 5, "B": 5, "C": 7},
             {"A": 5, "B": 5, "C": 7}]})
     def test_median(self, test_data, expected):
-        self.assertEqual(data_minimization_tools.reduce_to_median(test_data, "B"), expected)
-        self.assertEqual(data_minimization_tools.reduce_to_median(test_data, ["B"]), expected)
+        self.assertEqual(reduce_to_median(test_data, "B"), expected)
+        self.assertEqual(reduce_to_median(test_data, ["B"]), expected)
 
 
 if __name__ == '__main__':
