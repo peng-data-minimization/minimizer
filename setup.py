@@ -11,5 +11,6 @@ setup(name='data_minimization_tools',
       long_description=long_description,
       author_email='peng.dataminimization@gmail.com',
       license='MIT',
-      packages=['data_minimization_tools', 'data_minimization_tools.utils']
+      packages=['data_minimization_tools', 'data_minimization_tools.utils'],
+      install_requires=['numpy']
       )

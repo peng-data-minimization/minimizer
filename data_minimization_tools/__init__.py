@@ -2,7 +2,9 @@ import hashlib
 import statistics
 from collections import Iterable
 from typing import Callable
+from numpy.random import default_rng
 from .utils import check_input_type
+from functools import partial
 
 
 @check_input_type
@@ -14,6 +16,16 @@ def drop_keys(data: [dict], keys):
 def hash_keys(data: [dict], keys, hash_algorithm=hashlib.sha256, salt=None, digest_to_bytes=False):
     return _replace_with_function(data, keys, _hashing_wrapper, hash_algorithm=hash_algorithm,
                                   digest_to_bytes=digest_to_bytes, salt=salt)
+
+
+@check_input_type
+def replace_with_distribution(data: [dict], keys, numpy_distribution_function_str='standard_normal', *distribution_args,
+                              **distribution_kwargs):
+    # for possible distribution functions see
+    # https://numpy.org/doc/stable/reference/random/generator.html#numpy.random.Generator
+    generator = default_rng()
+    func = getattr(generator, numpy_distribution_function_str)
+    return _replace_with_function(data, keys, func, pass_self_to_func=False, *distribution_args, **distribution_kwargs)
 
 
 @check_input_type
@@ -37,14 +49,19 @@ def _reset_value(value):
         return None
 
 
-def _replace_with_function(data: [dict], keys_to_apply_to, replace_func: Callable, *func_args, **func_kwargs):
+def _replace_with_function(data: [dict], keys_to_apply_to, replace_func: Callable, pass_self_to_func=True, *func_args,
+                           **func_kwargs):
     if isinstance(keys_to_apply_to, str):
         keys_to_apply_to = [keys_to_apply_to]
 
     for item in data:
         for key in keys_to_apply_to:
             try:
-                item[key] = replace_func(item[key], *func_args, **func_kwargs)
+                if pass_self_to_func:
+                    prepped_func = partial(replace_func, item[key])
+                else:
+                    prepped_func = replace_func
+                item[key] = prepped_func(*func_args, **func_kwargs)
             except KeyError:
                 pass
     return data
