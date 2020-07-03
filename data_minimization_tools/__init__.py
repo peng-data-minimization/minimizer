@@ -1,10 +1,12 @@
 import hashlib
 import statistics
 from collections import Iterable
-from typing import Callable
-from numpy.random import default_rng
-from .utils import check_input_type
 from functools import partial
+from typing import Callable
+
+from numpy.random import default_rng
+
+from .utils import check_input_type
 
 
 @check_input_type
@@ -38,6 +40,11 @@ def reduce_to_median(data: [dict], keys):
     return _replace_with_aggregate(data, keys, statistics.median)
 
 
+@check_input_type
+def reduce_to_nearest_value(data: [dict], keys, step_width=10):
+    return _replace_with_function(data, keys, _get_nearest_value, step_width=step_width)
+
+
 def _reset_value(value):
     if isinstance(value, str):
         return ""
@@ -47,6 +54,11 @@ def _reset_value(value):
         return None
     else:
         return None
+
+
+def _get_nearest_value(value, step_width):
+    steps = value // step_width
+    return min(steps * step_width, (steps + 1) * step_width, key=lambda new_value: abs(new_value - value))
 
 
 def _replace_with_function(data: [dict], keys_to_apply_to, replace_func: Callable, pass_self_to_func=True, *func_args,
