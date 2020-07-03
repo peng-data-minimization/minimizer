@@ -1,44 +1,40 @@
-import datetime
 import hashlib
 import statistics
 from collections import Iterable
 from typing import Callable
-
 from .utils import check_input_type
 
 
 @check_input_type
-def drop_keys(data: [dict], keys_to_delete):
-    return _replace_with_function(data, keys_to_delete, _reset_value)
+def drop_keys(data: [dict], keys):
+    return _replace_with_function(data, keys, _reset_value)
 
 
 @check_input_type
-def hash_keys(data: [dict], keys_to_hash, hash_algorithm=hashlib.sha224, salt=None, digest_to_bytes=False):
-    if not salt:
-        salt = datetime.datetime.now().timestamp()
-
-    return _replace_with_function(data, keys_to_hash, _hashing_wrapper, hash_algorithm=hash_algorithm,
+def hash_keys(data: [dict], keys, hash_algorithm=hashlib.sha256, salt=None, digest_to_bytes=False):
+    return _replace_with_function(data, keys, _hashing_wrapper, hash_algorithm=hash_algorithm,
                                   digest_to_bytes=digest_to_bytes, salt=salt)
 
 
 @check_input_type
-def reduce_to_mean(data: [dict], keys_to_reduce):
-    return _replace_with_aggregate(data, keys_to_reduce, statistics.mean)
+def reduce_to_mean(data: [dict], keys):
+    return _replace_with_aggregate(data, keys, statistics.mean)
 
 
 @check_input_type
-def reduce_to_median(data: [dict], keys_to_reduce):
-    return _replace_with_aggregate(data, keys_to_reduce, statistics.median)
+def reduce_to_median(data: [dict], keys):
+    return _replace_with_aggregate(data, keys, statistics.median)
 
 
 def _reset_value(value):
     if isinstance(value, str):
         return ""
-    if isinstance(value, Iterable):
+    elif isinstance(value, Iterable):
         return []
-    if isinstance(value, int):
-        return 0
-    # ...
+    elif isinstance(value, int):
+        return None
+    else:
+        return None
 
 
 def _replace_with_function(data: [dict], keys_to_apply_to, replace_func: Callable, *func_args, **func_kwargs):
@@ -62,8 +58,11 @@ def _replace_with_aggregate(data: [dict], keys_to_aggregate, aggregator: Callabl
     return data
 
 
-def _hashing_wrapper(value, hash_algorithm, salt, digest_to_bytes=False):
-    value_str = str(value) + str(salt)
+def _hashing_wrapper(value, hash_algorithm, salt=None, digest_to_bytes=False):
+    value_str = str(value)
+    if salt:
+        value_str = value_str + str(salt)
+
     bytes_rep = value_str.encode('utf8')
 
     if digest_to_bytes:
