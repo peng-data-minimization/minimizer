@@ -1,4 +1,4 @@
-# data minimization tools
+# data minimization tools ![Python package](https://github.com/peng-data-minimization/minimizer/workflows/Python%20package/badge.svg)
 Pyhton library for data minimization tools.
 ## Installation
 ### local installation
