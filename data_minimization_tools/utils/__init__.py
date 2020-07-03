@@ -1,5 +1,5 @@
-from collections import Iterable
 import functools
+from collections.abc import Iterable
 
 
 class WrongInputDataTypeException(Exception):
