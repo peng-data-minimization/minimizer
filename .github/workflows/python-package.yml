@@ -31,7 +31,11 @@ jobs:
     - name: Lint with flake8
       run: |
         flake8 . --count --exit-zero --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistic
+    - name: Setup Java JDK
+      uses: actions/setup-java@v1.3.0
+      with:
+        java-version: 11
     - name: Test with pytest
       run: |
         pytest
