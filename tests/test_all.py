@@ -47,7 +47,7 @@ class MyTestCase(unittest.TestCase):
 
     @file_data("data/kanon.yml")
     def test_kanon(self, expected: dict):
-        sample = pd.read_csv("example-activity.csv")
+        sample = pd.read_csv("data/example-activity.csv")
         cn_config = {
             "start_latitude": ("quasi", OrderHierarchy("interval", 1, 2, 4)),
             "start_longitude": ("quasi", OrderHierarchy("interval", 1, 2, 4)),
