@@ -1,0 +1,36 @@
+expected:
+  - function:
+      args:
+        keys:
+          - start_latitude
+        step_width: 6.0
+      signature: reduce_to_nearest_value
+    input_offset_reset: earliest
+    input_topic: ':REPLACEME:'
+    name: reduce_to_nearest_value
+    output_topic: ':REPLACEME:'
+    storage_mode: memory
+    topic_encoding: utf8
+  - function:
+      args:
+        keys:
+          - start_longitude
+        step_width: 15.0
+      signature: reduce_to_nearest_value
+    input_offset_reset: earliest
+    input_topic: ':REPLACEME:'
+    name: reduce_to_nearest_value
+    output_topic: ':REPLACEME:'
+    storage_mode: memory
+    topic_encoding: utf8
+  - function:
+      args:
+        keys:
+          - external_id
+      signature: drop_keys
+    input_offset_reset: earliest
+    input_topic: ':REPLACEME:'
+    name: drop_keys
+    output_topic: ':REPLACEME:'
+    storage_mode: memory
+    topic_encoding: utf8
