@@ -4,4 +4,4 @@ cn-protect
 pandas
 # only for testing:
 ddt
-
+pyyaml
