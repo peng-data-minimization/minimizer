@@ -15,6 +15,20 @@ def drop_keys(data: [dict], keys):
 
 
 @check_input_type
+def replace_with(data: [dict], replacements: dict):
+    """
+    Receives a 1:1 mapping of original value to new value and replaces the original values accordingly. This
+    corresponds to CN-Protect's DataHierarchy.
+    :param data:
+    :param replacements:
+    :return:
+    """
+    getitem = lambda mapping, key: mapping[key]
+    return _replace_with_function(data, replacements, getitem, pass_self_to_func=True,
+                                  replacements=replacements)
+
+
+@check_input_type
 def hash_keys(data: [dict], keys, hash_algorithm=hashlib.sha256, salt=None, digest_to_bytes=False):
     return _replace_with_function(data, keys, _hashing_wrapper, hash_algorithm=hash_algorithm,
                                   digest_to_bytes=digest_to_bytes, salt=salt)
