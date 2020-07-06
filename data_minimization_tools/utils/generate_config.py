@@ -1,17 +1,15 @@
 import importlib
 
+import pandas as pd
 import yaml
 
 
-def generate_kanon_config(file_name: str, k: int, cn_config: dict):
+def generate_kanon_config(sample: pd.DataFrame, k: int, cn_config: dict):
     from cn.protect import Protect
     from cn.protect.privacy import KAnonymity
     from cn.protect.hierarchy import DataHierarchy, OrderHierarchy
-    import pandas as pd
     import uuid
     import textwrap
-
-    sample = pd.read_csv(file_name)
 
     protector = Protect(sample, KAnonymity(k))
 
@@ -70,6 +68,8 @@ def generate_kanon_config(file_name: str, k: int, cn_config: dict):
         """))
     print(yaml.dump(worker_config))
 
+    return worker_config
+
 
 if __name__ == "__main__":
     import argparse
@@ -85,4 +85,4 @@ if __name__ == "__main__":
 
     cn_config = importlib.import_module("kanon_cf_config").cn_config
 
-    generate_kanon_config(args.sample_data, args.k, cn_config)
+    generate_kanon_config(pd.read_csv(args.sample_data), args.k, cn_config)
