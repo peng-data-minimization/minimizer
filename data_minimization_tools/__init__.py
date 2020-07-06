@@ -1,6 +1,6 @@
 import hashlib
 import statistics
-from collections import Iterable
+from collections.abc import Iterable
 from functools import partial
 from typing import Callable
 
@@ -12,6 +12,20 @@ from .utils import check_input_type
 @check_input_type
 def drop_keys(data: [dict], keys):
     return _replace_with_function(data, keys, _reset_value)
+
+
+@check_input_type
+def replace_with(data: [dict], replacements: dict):
+    """
+    Receives a 1:1 mapping of original value to new value and replaces the original values accordingly. This
+    corresponds to CN-Protect's DataHierarchy.
+    :param data:
+    :param replacements:
+    :return:
+    """
+    getitem = lambda mapping, key: mapping[key]
+    return _replace_with_function(data, replacements, getitem, pass_self_to_func=True,
+                                  replacements=replacements)
 
 
 @check_input_type
