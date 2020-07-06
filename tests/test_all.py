@@ -1,3 +1,5 @@
+import inspect
+import os
 import unittest
 
 import pandas as pd
@@ -47,7 +49,7 @@ class MyTestCase(unittest.TestCase):
 
     @file_data("data/kanon.yml")
     def test_kanon(self, expected: dict):
-        sample = pd.read_csv("data/example-activity.csv")
+        sample = pd.read_csv(os.path.join(get_script_directory(), "data/example-activity.csv"))
         cn_config = {
             "start_latitude": ("quasi", OrderHierarchy("interval", 1, 2, 4)),
             "start_longitude": ("quasi", OrderHierarchy("interval", 1, 2, 4)),
@@ -60,6 +62,10 @@ class MyTestCase(unittest.TestCase):
             self.assertEqual(a_function["name"][:len(e_function["name"])], e_function["name"])
             del a_function["name"], e_function["name"]
         self.assertEqual(actual, {"tasks": expected})
+
+
+def get_script_directory():
+    return os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
 
 if __name__ == '__main__':
