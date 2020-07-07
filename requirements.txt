@@ -5,3 +5,4 @@ pandas
 # only for testing:
 ddt
 pyyaml
+fitparse
