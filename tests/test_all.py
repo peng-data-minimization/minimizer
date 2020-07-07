@@ -5,6 +5,7 @@ import unittest
 import pandas as pd
 from cn.protect.hierarchy import OrderHierarchy
 from ddt import ddt, data, unpack, file_data
+from fitparse import FitFile
 
 from data_minimization_tools import reduce_to_median, reduce_to_nearest_value
 from data_minimization_tools.utils.generate_config import generate_kanon_config
@@ -62,6 +63,12 @@ class MyTestCase(unittest.TestCase):
             self.assertEqual(a_function["name"][:len(e_function["name"])], e_function["name"])
             del a_function["name"], e_function["name"]
         self.assertEqual(actual, {"tasks": expected})
+
+    @data("data/fit/2019-11-25-075753-ELEMNT BOLT F8AF-2-0.fit")
+    def test_ppa(self, file_path):
+        ff = FitFile(file_path)
+        for record in ff.get_messages("record"):
+            print(record)
 
 
 def get_script_directory():

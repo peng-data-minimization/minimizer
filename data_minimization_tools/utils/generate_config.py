@@ -71,6 +71,40 @@ def generate_kanon_config(sample: pd.DataFrame, k: int, cn_config: dict):
     return worker_config
 
 
+def generate_ppa_config(journey: [dict], key_map: dict):
+    key_map = {
+        # Things we need to change
+        "quad_sw_lat": 35.946920,
+        "quad_sw_lng": -83.938486,
+        "quad_ne_lat": 35.955526,
+        "quad_ne_lng": -83.926738,
+        "max_direct_distance": 50.0,
+        "max_manhattan_distance": 50.0,
+        # Things we are not going to change
+        "plot_kml": 0,
+        "mf_fit_ext": .5,
+        "mf_toggle_scale": 1,
+        "mf_scale": 1,
+        "n_heading_groups": 36,
+        "min_edge_trip_pts": 10,
+        "ta_max_q_size": 20,
+        "ta_area_width": 30.0,
+        "ta_heading_delta": 90,
+        "ta_max_speed": 100.0,
+        "stop_min_distance": 50.0,
+        "stop_max_time": 1.0,
+        "stop_max_speed": 2.5,
+        "min_direct_distance": 10.0,
+        "min_manhattan_distance": 10.0,
+        "min_out_degree": 0,
+        "max_out_degree": 0,
+        "rand_direct_distance": 0,
+        "rand_manhattan_distance": 0,
+        "rand_out_degree": 0,
+    }
+    return "\n".join([f"{key}:{value}" for key, value in key_map.items()])
+
+
 if __name__ == "__main__":
     import argparse
 
