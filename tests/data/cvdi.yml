@@ -1,4 +1,4 @@
-- fitfile_path: data/fit/2020-06-12-152008-ELEMNT BOLT F8AF-82-0.fit
+- fitfile_path: data/fit/2020-06-12-152008-ELEMNT-BOLT-F8AF-82-0.fit
   expected:
     - activityId: 7
       altitude: 5188
