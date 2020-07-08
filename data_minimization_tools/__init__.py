@@ -159,6 +159,12 @@ def do_fancy_things(data: [dict], original_to_cvdi_key: dict, cvdi_overrides=Non
     cvdi_config_dir = f"{current_working_directory}/cvdi-conf"
     cvdi_out_dir = f"{current_working_directory}/cvdi-consume"
 
+    for dirname in cvdi_config_dir, cvdi_out_dir:
+        try:
+            os.mkdir(dirname)
+        except FileExistsError:
+            pass
+
     data_for_cvdi = _prepare_dicts_for_cvdi_consumption(data, original_to_cvdi_key)
     with open(os.path.join(cvdi_config_dir, "THE_FILE.csv"), "w+") as data_file:
         fieldnames = [key for key in data_for_cvdi[0]]
