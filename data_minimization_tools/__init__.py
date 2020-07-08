@@ -182,8 +182,12 @@ def do_fancy_things(data: [dict], original_to_cvdi_key: dict, cvdi_overrides=Non
         data_file_list_file.write(os.path.join(data_file_path, "THE_FILE.csv"))
 
     cvdi_executable_path = os.path.join(script_abs_directory, "bin/cv_di")
-    run_cvdi = lambda binary_path: subprocess.run([binary_path, *_get_cvdi_args(cvdi_config_dir, cvdi_out_dir)],
-                                                  check=True, capture_output=True)
+
+    def run_cvdi(binary_path: str):
+        call = [binary_path, *_get_cvdi_args(cvdi_config_dir, cvdi_out_dir)]
+        print(f"Calling {call}")
+        return subprocess.run(call, check=True, capture_output=True)
+
     try:
         cvdi_process = run_cvdi(cvdi_executable_path)
     except OSError:
@@ -200,7 +204,7 @@ def do_fancy_things(data: [dict], original_to_cvdi_key: dict, cvdi_overrides=Non
     processed_data_candidates = [name for name in os.listdir(cvdi_out_dir) if name.endswith(".csv")]
 
     if len(processed_data_candidates) != 1:
-        raise Exception("Expected exactly one produced CSV file, found " + str(processed_data_candidates))
+        raise Exception(f"Expected exactly one produced CSV file in {cvdi_out_dir}, found {processed_data_candidates}.")
 
     processed_data_file_name = os.path.join(cvdi_out_dir, processed_data_candidates[0])
 
