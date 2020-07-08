@@ -7,7 +7,7 @@ from cn.protect.hierarchy import OrderHierarchy
 from ddt import ddt, data, unpack, file_data
 from fitparse import FitFile
 
-from data_minimization_tools import reduce_to_median, reduce_to_nearest_value
+from data_minimization_tools import reduce_to_median, reduce_to_nearest_value, do_fancy_things
 from data_minimization_tools.utils.generate_config import generate_kanon_config
 
 
@@ -64,11 +64,42 @@ class MyTestCase(unittest.TestCase):
             del a_function["name"], e_function["name"]
         self.assertEqual(actual, {"tasks": expected})
 
-    @data("data/fit/2019-11-25-075753-ELEMNT BOLT F8AF-2-0.fit")
-    def test_ppa(self, file_path):
+    @file_data("data/cvdi.yml")
+    def test_yml(self, fitfile_path, expected):
+        data, key_mapping = self._preprocess_fitfile(fitfile_path)
+
+        result = do_fancy_things(data, key_mapping)
+        self.assertAlmostEqual(result, expected)
+
+    def _preprocess_fitfile(self, file_path):
         ff = FitFile(file_path)
-        for record in ff.get_messages("record"):
-            print(record)
+        data = []
+        key_mapping = {
+            "position_lat": "Latitude",
+            "position_long": "Longitude",
+            "heart_rate": "Heading",
+            "enhanced_speed": "Speed",
+            "timestamp": "Gentime"
+        }
+        for record in ff.get_messages('record'):
+            record_dict = {metric.name: (metric.value if metric.name != "timestamp" else metric.raw_value) for
+                           metric in record}
+            if all(required_key in record_dict.keys() for required_key in key_mapping):
+                record_dict.update({
+                    'activityId': 7,
+                    'type': 'fitfile_upload',
+                    "position_lat": self.semicircles_to_degrees(
+                        record_dict["position_lat"]),
+                    "position_long": self.semicircles_to_degrees(
+                        record_dict["position_long"])
+                })
+                data.append(record_dict)
+            else:
+                print("skipping")
+        return data, key_mapping
+
+    def semicircles_to_degrees(self, semicircles):
+        return semicircles * 180 / 2 ** 31
 
 
 def get_script_directory():

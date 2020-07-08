@@ -71,8 +71,8 @@ def generate_kanon_config(sample: pd.DataFrame, k: int, cn_config: dict):
     return worker_config
 
 
-def generate_ppa_config(journey: [dict], key_map: dict):
-    key_map = {
+def generate_cvdi_config(journey: [dict], config: dict, user_overrides: dict):
+    config = {
         # Things we need to change
         "quad_sw_lat": 35.946920,
         "quad_sw_lng": -83.938486,
@@ -101,8 +101,9 @@ def generate_ppa_config(journey: [dict], key_map: dict):
         "rand_direct_distance": 0,
         "rand_manhattan_distance": 0,
         "rand_out_degree": 0,
+        **user_overrides
     }
-    return "\n".join([f"{key}:{value}" for key, value in key_map.items()])
+    return "\n".join([f"{key}:{value}" for key, value in config.items()])
 
 
 if __name__ == "__main__":
@@ -117,6 +118,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    cn_config = importlib.import_module("kanon_cf_config").cn_config
+    cn_config = importlib.import_module("kanon_cn_config").cn_config
 
     generate_kanon_config(pd.read_csv(args.sample_data), args.k, cn_config)

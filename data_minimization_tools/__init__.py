@@ -13,7 +13,7 @@ from warnings import warn
 from numpy.random import default_rng
 
 from .utils import check_input_type
-from .utils.generate_config import generate_ppa_config
+from .utils.generate_config import generate_cvdi_config
 
 
 @check_input_type
@@ -66,18 +66,20 @@ def reduce_to_nearest_value(data: [dict], keys, step_width=10):
     return _replace_with_function(data, keys, _get_nearest_value, step_width=step_width)
 
 
-def _prepare_dicts_for_ppa_consumption(data: [dict], geodata_key_map: dict):
+def _prepare_dicts_for_cvdi_consumption(data: [dict], geodata_key_map: dict):
     """
-    For several dicts, rename columns relevant to geodata so that they are understood by our geodata anonymization tool.
+    For several dicts, rename columns relevant to geodata so that they are understood by our geodata anonymization tool,
+    and add columns that the tool requires to be present in the order the tool expects. (The last part might not be
+    necessary.)
 
     *Example*
         ``[{"lat": 14, "lng": 52, "something_else": "foo"}]``
 
-        ↦ ``[{"Latitude": 14, "Longitude": 52}]``
+        ↦ ``[{"RxDevice": 1, "Latitude": 14, "Longitude": 52, "Ax": None}]``
 
     *Rationale*
-        The privacy-protection-application does not support setting field names when using the cli, but only when using
-        the GUI: compare https://github.com/usdot-its-jpo-data-portal/privacy-protection-application/blob/fd59e3e42842fb80d579d7efa2dd6f1349e67899/cv-gui-electron/cpp/src/cvdi_nm.cc#L817
+        The cv-di is very peculiar about the csv format it accepts as input thata. It does not support setting field
+        names when using the cli, but only when using the GUI: compare https://github.com/usdot-its-jpo-data-portal/privacy-protection-application/blob/fd59e3e42842fb80d579d7efa2dd6f1349e67899/cv-gui-electron/cpp/src/cvdi_nm.cc#L817
         with https://github.com/usdot-its-jpo-data-portal/privacy-protection-application/blob/fd59e3e42842fb80d579d7efa2dd6f1349e67899/cl-tool/src/config.cpp#L306
 
         Maybe, if we used the cvdi_nm (node module) instead of the cli binary, this would work?
@@ -86,90 +88,134 @@ def _prepare_dicts_for_ppa_consumption(data: [dict], geodata_key_map: dict):
     :param geodata_key_map: Map of keys
     :return:
     """
+    required_keys = ["RxDevice", "FileId", "TxDevice", "Gentime", "TxRandom", "MsgCount", "DSecond", "Latitude",
+                     "Longitude", "Elevation", "Speed", "Heading", "Ax", "Ay", "Az", "Yawrate", "PathCount",
+                     "RadiusOfCurve", "Confidence"]
     return [{
-        ppa_key: original_item[original_key] for original_key, ppa_key in geodata_key_map.items()
+        **{required_key: None for required_key in required_keys},
+        # Set an arbitrary value for all points of the journey to mark them as being part of that journey.
+        # FIXME Are all of these really required?
+        "TxDevice": 1,
+        "RxDevice": 1,
+        "FileId": 1,
+        **{cvdi_key: original_item[original_key] for original_key, cvdi_key in geodata_key_map.items()}
     } for original_item in data]
 
 
-def _revert_dict_preparation_for_ppa_consumption(ppa_output: [dict], original_data: [dict], geodata_key_map: dict) -> \
+def _revert_dict_preparation_for_cvdi_consumption(cvdi_output: [dict], original_data: [dict], geodata_key_map: dict) -> \
         [dict]:
     """
-    See :func:`_prepare_dicts_for_ppa_consumption`.
+    Undo the re-mapping and dropping of keys that was applied to make the data ingestible by the cv-di. For details on
+    that, see :func:`_prepare_dicts_for_cvdi_consumption`.
 
-    :param ppa_output:
+    The cv-di output will contain a lot less items than the original data did. Joins the to lists based on their
+    timestamp, and drop lines in input data that are not contained in the cv-di output.
+
+    :param cvdi_output:
     :param original_data:
     :param geodata_key_map:
     :return:
     """
-    if len(ppa_output) != len(original_data):
-        raise Exception(f"Data was lost! Original data was {len(original_data)} items, after ppa: {len(ppa_output)}")
+    cvdi_key_to_join_by = "Gentime"
+    original_key_to_join_by = next(original_key for original_key, cvdi_key in geodata_key_map.items()
+                                   if cvdi_key == cvdi_key_to_join_by)
+
+    def is_join_match(cvdi_item, original_item):
+        return cvdi_item[cvdi_key_to_join_by] == original_item[original_key_to_join_by]
+
+    # gentime is unique for one journey --> inner one to one join, throw away remaining original_data
+    joint = [(
+        next(original_item for original_item in original_data if is_join_match(cvdi_item, original_item)),
+        cvdi_item
+    ) for cvdi_item in cvdi_output]
 
     return [{
         **original_item,
-        **{original_key: ppa_processed_item[ppa_key] for original_key, ppa_key in geodata_key_map.items()}
-    } for original_item, ppa_processed_item in zip(original_data, ppa_output)]
+        **{original_key: cvdi_processed_item[cvdi_key] for original_key, cvdi_key in geodata_key_map.items()}
+    } for original_item, cvdi_processed_item in joint]
 
 
 @check_input_type
-def do_fancy_things(data: [dict], key_thingy: dict):
+def do_fancy_things(data: [dict], original_to_cvdi_key: dict, cvdi_overrides=None):
+    if cvdi_overrides is None:
+        cvdi_overrides = {}
+
     REQUIRED_KEYS = {"Latitude", "Longitude", "Heading", "Speed", "Gentime"}
     # also trip_id. Heading should be generated later?
-    if set(key_thingy.values()) != REQUIRED_KEYS:
+    if set(original_to_cvdi_key.values()) != REQUIRED_KEYS:
         warn(textwrap.dedent(f"""
-                The following keys should be defined for the ppa library: 
+                The following keys should be defined for the cvdi library: 
                 {REQUIRED_KEYS}, 
                 but got the following:
-                {key_thingy.values()}
+                {original_to_cvdi_key.values()}
                 mapping to: 
-                {key_thingy}.
+                {original_to_cvdi_key}.
                 This might lead to wonky results or a crash."""),
              RuntimeWarning)
 
     script_abs_directory = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
     current_working_directory = os.getcwd()
 
-    ppa_config_dir = f"{current_working_directory}/ppa-conf"
-    ppa_out_dir = f"{current_working_directory}/ppa-consume"
+    cvdi_config_dir = f"{current_working_directory}/cvdi-conf"
+    cvdi_out_dir = f"{current_working_directory}/cvdi-consume"
 
-    data_for_ppa = _prepare_dicts_for_ppa_consumption(data, key_thingy)
-    with open(os.path.join(ppa_config_dir, "THE_FILE.csv"), "w") as data_file:
-        fieldnames = [key for key in data_for_ppa[0]]
-        writer = csv.DictWriter(data_file, fieldnames)
+    data_for_cvdi = _prepare_dicts_for_cvdi_consumption(data, original_to_cvdi_key)
+    with open(os.path.join(cvdi_config_dir, "THE_FILE.csv"), "w+") as data_file:
+        fieldnames = [key for key in data_for_cvdi[0]]
+        writer = csv.DictWriter(data_file, fieldnames, dialect=csv.excel)
         writer.writeheader()
-        writer.writerows(data_for_ppa)
+        writer.writerows(data_for_cvdi)
 
-    config = generate_ppa_config(data, key_thingy)
-    with open(os.path.join(ppa_config_dir, "config"), "w") as config_file:
+    config = generate_cvdi_config(data, original_to_cvdi_key, cvdi_overrides)
+    with open(os.path.join(cvdi_config_dir, "config"), "w+") as config_file:
         config_file.write(config)
 
-    with open(os.path.join(ppa_config_dir, "data_file"), "w") as data_file_list_file:
-        data_file_list_file.write(os.path.join(ppa_config_dir, "THE_FILE.csv"))
+    # replace c:\\, d:\\, etc, with / and hope things don't break.
+    data_file_path = cvdi_config_dir if cvdi_config_dir[0] == "/" else "/" + cvdi_config_dir[3:]
+    with open(os.path.join(cvdi_config_dir, "data_file_list"), "w+") as data_file_list_file:
+        data_file_list_file.write(os.path.join(data_file_path, "THE_FILE.csv"))
 
-    # ppa_executable_path = os.path.join(script_abs_directory, "bin/cv_di") # Does not work on Windows
-    ppa_executable_path = "bin/cv_di"
-    subprocess.run([ppa_executable_path, *_get_ppa_args(ppa_config_dir, ppa_out_dir)], check=True)
+    cvdi_executable_path = os.path.join(script_abs_directory, "bin/cv_di")
+    run_cvdi = lambda binary_path: subprocess.run([binary_path, *_get_cvdi_args(cvdi_config_dir, cvdi_out_dir)],
+                                                  check=True, capture_output=True)
+    try:
+        cvdi_process = run_cvdi(cvdi_executable_path)
+    except OSError:
+        # assuming running on windows
+        cvdi_process = run_cvdi(cvdi_executable_path + ".exe")
 
-    processed_data_candidates = [name for name in os.listdir(ppa_out_dir) if name.endswith(".csv")]
+    if cvdi_process.stderr[-106:-93] == b"0,0,0,0,0,0,0":
+        raise Exception(f"CV-DI processed exactly 0 lines, "
+                        f"message was: {cvdi_process.stderr.splitlines()[-5]}")
+    if cvdi_process.stderr[-95:-93] == b",0":
+        raise Exception(f"CV-DI produced exactly 0 points as part of a privacy interval, "
+                        f"message was: {cvdi_process.stderr.splitlines()[-5]}")
+
+    processed_data_candidates = [name for name in os.listdir(cvdi_out_dir) if name.endswith(".csv")]
 
     if len(processed_data_candidates) != 1:
         raise Exception("Expected exactly one produced CSV file, found " + str(processed_data_candidates))
 
-    processed_data_file_name = processed_data_candidates[0]
+    processed_data_file_name = os.path.join(cvdi_out_dir, processed_data_candidates[0])
 
     with open(processed_data_file_name) as csvfile:
-        ppa_processed_data = list(csv.DictReader(csvfile))
-        return _revert_dict_preparation_for_ppa_consumption(ppa_processed_data, data, key_thingy)
+        cvdi_processed_data = [{
+            # hackily restore original types instead of parsing everything as string
+            key: float(val) if val != '' else None for key, val in row.items()
+        } for row in csv.DictReader(csvfile)]
+
+    return _revert_dict_preparation_for_cvdi_consumption(cvdi_processed_data, data, original_to_cvdi_key)
 
 
-def _get_ppa_args(ppa_config_dir, ppa_out_dir) -> Iterable[str]:
-    config_file_path = os.path.join(ppa_config_dir, "config")
-    quad_file_path = os.path.join(ppa_config_dir, "quad")
-    data_file_list_file_path = os.path.join(ppa_config_dir, "data_file")
+def _get_cvdi_args(cvdi_config_dir, cvdi_out_dir) -> Iterable:
+    config_file_path = os.path.join(cvdi_config_dir, "config")
+    quad_file_path = os.path.join(cvdi_config_dir, "quad")
+    data_file_list_file_path = os.path.join(cvdi_config_dir, "data_file_list")
     return ["-n",
             "-c", config_file_path,
             "-q", quad_file_path,
-            "-o", ppa_out_dir,
-            "-k", ppa_out_dir,
+            "-o", cvdi_out_dir,
+            "-k", cvdi_out_dir,
             data_file_list_file_path]
 
 
