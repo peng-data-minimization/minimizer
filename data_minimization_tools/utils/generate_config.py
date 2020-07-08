@@ -74,10 +74,10 @@ def generate_kanon_config(sample: pd.DataFrame, k: int, cn_config: dict):
 def generate_cvdi_config(journey: [dict], config: dict, user_overrides: dict):
     config = {
         # Things we need to change
-        "quad_sw_lat": 35.946920,
-        "quad_sw_lng": -83.938486,
-        "quad_ne_lat": 35.955526,
-        "quad_ne_lng": -83.926738,
+        "quad_sw_lat": 51.6280977,
+        "quad_sw_lng": 10.4713459,
+        "quad_ne_lat": 51.9007121,
+        "quad_ne_lng": 10.8180638,
         "max_direct_distance": 50.0,
         "max_manhattan_distance": 50.0,
         # Things we are not going to change
