@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='data_minimization_tools',
-      version='0.0.2',
+      version='0.0.3',
       description='Pyhton library for data minimization tools.',
       url='https://github.com/peng-data-minimization/minimizer',
       author='peng-data-minimization',
@@ -13,5 +13,5 @@ setup(name='data_minimization_tools',
       author_email='peng.dataminimization@gmail.com',
       license='MIT',
       packages=['data_minimization_tools', 'data_minimization_tools.utils'],
-      install_requires=['numpy']
+      install_requires=['numpy', 'cn-protect', 'PyYAML', 'pandas']
       )

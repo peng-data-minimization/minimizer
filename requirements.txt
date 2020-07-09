@@ -2,7 +2,7 @@ numpy
 cython
 cn-protect
 pandas
+pyyaml
 # only for testing:
 ddt
-pyyaml
 fitparse
