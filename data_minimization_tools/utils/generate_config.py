@@ -5,6 +5,18 @@ import yaml
 
 
 def generate_kanon_config(sample: pd.DataFrame, k: int, cn_config: dict):
+    """
+    Generate a config that contains a set of rules that guarantee k-anonymity on a given dataset. Use these rules
+    to apply them to a stream of data.
+
+    :param sample: a pandas dataframe with the sample data
+    :param k: the level of k
+    :param cn_config: the config for cn_protect
+                    (check the `docs <https://docs.cryptonumerics.com/cn-protect-ds/?page=docs.cryptonumerics.com/cn-protect-ds-html/protect.html>`_),
+                    the library that applies k-ananymity. Sorry for this not being
+                    open source. We are happy if you find a better python implementation of k-anonymity.
+    :return: a config that can be fed to the `spi <https://github.com/peng-data-minimization/kafka-spi>`_
+    """
     from cn.protect import Protect
     from cn.protect.privacy import KAnonymity
     from cn.protect.hierarchy import DataHierarchy, OrderHierarchy
