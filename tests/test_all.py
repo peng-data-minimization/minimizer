@@ -53,16 +53,18 @@ class MyTestCase(unittest.TestCase):
         "test_data": [
             {"A": 5, "B": 4},
             {"A": 5, "B": 4, "C": {"A": "foo", "B": 4}},
-            {"A": 5, "B": 4, "C": {"A": "foo", "B": 4, "C": {"A": [1,2,3], "B": 4}}}
+            {"A": 5, "B": 4, "C": {"A": "foo", "B": 4, "C": {"A": [1,2,3], "B": 4}}},
+            {"A": 5, "B": 4, "C": [{"A": "foo", "B": 4}, {"A": [1,2,3], "B": 4}]}
             ],
         "expected": [
             {"A": None, "B": 4},
             {"A": None, "B": 4, "C": {"A": "", "B": 4}},
-            {"A": None, "B": 4, "C": {"A": "", "B": 4, "C": {"A": [], "B": 4}}}
+            {"A": None, "B": 4, "C": {"A": "", "B": 4, "C": {"A": [], "B": 4}}},
+            {"A": None, "B": 4, "C": [{"A": "", "B": 4}, {"A": [], "B": 4}]}
             ]})
     def test_drop_keys(self, test_data, expected):
-        self.assertEqual(drop_keys(test_data, ["A", "C.A", "C.C.A"]), expected)
-        self.assertEqual(drop_keys(test_data, ["X", "X.X", "C.X"]), test_data)
+        self.assertEqual(drop_keys(test_data, ["A", "C.A", "C[].A", "C.C.A"]), expected)
+        self.assertEqual(drop_keys(test_data, ["X", "X.X", "C.X", "A[]", "A[].", "A[].X", "X[].X"]), test_data)
 
 
     @file_data("data/kanon.yml")
