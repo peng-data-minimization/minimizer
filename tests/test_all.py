@@ -7,7 +7,8 @@ from cn.protect.hierarchy import OrderHierarchy
 from ddt import ddt, data, unpack, file_data
 from fitparse import FitFile
 
-from data_minimization_tools import reduce_to_median, reduce_to_nearest_value, do_fancy_things, drop_keys
+from data_minimization_tools import reduce_to_median, reduce_to_nearest_value, drop_keys
+from data_minimization_tools.cvdi import anonymize_journey
 from data_minimization_tools.utils.generate_config import generate_kanon_config
 
 
@@ -88,7 +89,7 @@ class MyTestCase(unittest.TestCase):
     def test_yml(self, fitfile_path, expected):
         data, key_mapping = _preprocess_fitfile(os.path.join(get_script_directory(), fitfile_path))
 
-        result = do_fancy_things(data, key_mapping)
+        result = anonymize_journey(data, key_mapping)
         self.assertAlmostEqual(result, expected)
 
 
