@@ -314,7 +314,6 @@ def _replace_with_function(data: [dict], keys_to_apply_to, replace_func: Callabl
     """
     helper function. Sould not be used from the api.
 
-
     :param data:
     :param keys_to_apply_to:
     :param replace_func:
@@ -323,11 +322,19 @@ def _replace_with_function(data: [dict], keys_to_apply_to, replace_func: Callabl
     :param func_kwargs:
     :return:
     """
+    if not isinstance(data, list):
+        return data
+
     if isinstance(keys_to_apply_to, str):
         keys_to_apply_to = [keys_to_apply_to]
 
     for item in data:
         for key in keys_to_apply_to:
+
+            if "[]." in key:
+                list_key, rest = key.split("[].", 1)
+                _replace_with_function(_get(item, list_key), rest, replace_func, pass_self_to_func, *func_args, **func_kwargs)
+                continue
             try:
                 if pass_self_to_func:
                     prepped_func = partial(replace_func, _get(item, key))
