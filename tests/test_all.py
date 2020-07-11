@@ -7,7 +7,7 @@ from cn.protect.hierarchy import OrderHierarchy
 from ddt import ddt, data, unpack, file_data
 from fitparse import FitFile
 
-from data_minimization_tools import reduce_to_median, reduce_to_nearest_value, do_fancy_things
+from data_minimization_tools import reduce_to_median, reduce_to_nearest_value, do_fancy_things, drop_keys
 from data_minimization_tools.utils.generate_config import generate_kanon_config
 
 
@@ -48,6 +48,23 @@ class MyTestCase(unittest.TestCase):
     def test_nearest_number(self, test_data, expected):
         self.assertEqual(reduce_to_nearest_value(test_data, ["B"], step_width=3), expected)
 
+    @unpack
+    @data({
+        "test_data": [
+            {"A": 5, "B": 4},
+            {"A": 5, "B": 4, "C": {"A": "foo", "B": 4}},
+            {"A": 5, "B": 4, "C": {"A": "foo", "B": 4, "C": {"A": [1,2,3], "B": 4}}}
+            ],
+        "expected": [
+            {"A": None, "B": 4},
+            {"A": None, "B": 4, "C": {"A": "", "B": 4}},
+            {"A": None, "B": 4, "C": {"A": "", "B": 4, "C": {"A": [], "B": 4}}}
+            ]})
+    def test_drop_keys(self, test_data, expected):
+        self.assertEqual(drop_keys(test_data, ["A", "C.A", "C.C.A"]), expected)
+        self.assertEqual(drop_keys(test_data, ["X", "X.X", "C.X"]), test_data)
+
+
     @file_data("data/kanon.yml")
     def test_kanon(self, expected: dict):
         sample = pd.read_csv(os.path.join(get_script_directory(), "data/example-activity.csv"))
@@ -63,6 +80,7 @@ class MyTestCase(unittest.TestCase):
             self.assertEqual(a_function["name"][:len(e_function["name"])], e_function["name"])
             del a_function["name"], e_function["name"]
         self.assertEqual(actual, {"tasks": expected})
+
 
     @file_data("data/cvdi.yml")
     def test_yml(self, fitfile_path, expected):
