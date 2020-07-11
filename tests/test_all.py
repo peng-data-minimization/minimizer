@@ -6,7 +6,7 @@ import pandas as pd
 from ddt import ddt, data, unpack, file_data
 from fitparse import FitFile
 
-from data_minimization_tools import reduce_to_median, reduce_to_nearest_value, do_fancy_things
+from data_minimization_tools import reduce_to_median, reduce_to_nearest_value, do_fancy_things, drop_keys
 
 
 @ddt
@@ -45,6 +45,23 @@ class MyTestCase(unittest.TestCase):
             {"A": 5, "B": 0, "C": 7}]})
     def test_nearest_number(self, test_data, expected):
         self.assertEqual(reduce_to_nearest_value(test_data, ["B"], step_width=3), expected)
+
+
+    @unpack
+    @data({
+        "test_data": [
+            {"A": 5, "B": 4},
+            {"A": 5, "B": 4, "C": {"A": "foo", "B": 4}},
+            {"A": 5, "B": 4, "C": {"A": "foo", "B": 4, "C": {"A": [1,2,3], "B": 4}}}
+            ],
+        "expected": [
+            {"A": None, "B": 4},
+            {"A": None, "B": 4, "C": {"A": "", "B": 4}},
+            {"A": None, "B": 4, "C": {"A": "", "B": 4, "C": {"A": [], "B": 4}}}
+            ]})
+    def test_drop_keys(self, test_data, expected):
+        self.assertEqual(drop_keys(test_data, ["A", "C.A", "C.C.A"]), expected)
+        self.assertEqual(drop_keys(test_data, ["X", "X.X", "C.X"]), test_data)
 
 
     @file_data("data/cvdi.yml")

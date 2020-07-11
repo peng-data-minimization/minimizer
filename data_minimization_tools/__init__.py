@@ -330,13 +330,50 @@ def _replace_with_function(data: [dict], keys_to_apply_to, replace_func: Callabl
         for key in keys_to_apply_to:
             try:
                 if pass_self_to_func:
-                    prepped_func = partial(replace_func, item[key])
+                    prepped_func = partial(replace_func, _get(item, key))
                 else:
                     prepped_func = replace_func
-                item[key] = prepped_func(*func_args, **func_kwargs)
+                value = prepped_func(*func_args, **func_kwargs)
+                _put(item, key, value)
             except KeyError:
                 pass
     return data
+
+
+def _get(d, keys):
+    """
+    helper function to get a value from a nested dict with dotted string notation.
+    Sould not be used from the api.
+
+    :param d:
+    :param keys:
+    :return:
+    """
+    if not isinstance(d, dict):
+        return
+    if "." in keys:
+        key, rest = keys.split(".", 1)
+        return _get(d.get(key), rest)
+    else:
+        return d.get(keys)
+
+
+def _put(d, keys, value):
+    """
+    helper function to put a value into a nested dict with dotted string notation.
+    Sould not be used from the api.
+    :param d:
+    :param keys:
+    :param value:
+    :return:
+    """
+    if not isinstance(d, dict):
+        return
+    if "." in keys:
+        key, rest = keys.split(".", 1)
+        _put(d[key], rest, value)
+    else:
+        d[keys] = value
 
 
 def _replace_with_aggregate(data: [dict], keys_to_aggregate, aggregator: Callable):
