@@ -1,3 +1,4 @@
+import csv
 import inspect
 import os
 import unittest
@@ -54,19 +55,18 @@ class MyTestCase(unittest.TestCase):
         "test_data": [
             {"A": 5, "B": 4},
             {"A": 5, "B": 4, "C": {"A": "foo", "B": 4}},
-            {"A": 5, "B": 4, "C": {"A": "foo", "B": 4, "C": {"A": [1,2,3], "B": 4}}},
-            {"A": 5, "B": 4, "C": [{"A": "foo", "B": 4}, {"A": [1,2,3], "B": 4}]}
-            ],
+            {"A": 5, "B": 4, "C": {"A": "foo", "B": 4, "C": {"A": [1, 2, 3], "B": 4}}},
+            {"A": 5, "B": 4, "C": [{"A": "foo", "B": 4}, {"A": [1, 2, 3], "B": 4}]}
+        ],
         "expected": [
             {"A": None, "B": 4},
             {"A": None, "B": 4, "C": {"A": "", "B": 4}},
             {"A": None, "B": 4, "C": {"A": "", "B": 4, "C": {"A": [], "B": 4}}},
             {"A": None, "B": 4, "C": [{"A": "", "B": 4}, {"A": [], "B": 4}]}
-            ]})
+        ]})
     def test_drop_keys(self, test_data, expected):
         self.assertEqual(drop_keys(test_data, ["A", "C.A", "C[].A", "C.C.A"]), expected)
         self.assertEqual(drop_keys(test_data, ["X", "X.X", "C.X", "A[]", "A[].", "A[].X", "X[].X"]), test_data)
-
 
     @file_data("data/kanon.yml")
     def test_kanon(self, expected: dict):
@@ -84,9 +84,26 @@ class MyTestCase(unittest.TestCase):
             del a_function["name"], e_function["name"]
         self.assertEqual(actual, {"tasks": expected})
 
+    @file_data("data/cvdi/direct.yml")
+    def test_cvdi_directly(self, input, config_overrides, expected):
+        key_mapping = {
+            "Latitude": "Latitude",
+            "Longitude": "Longitude",
+            "Heading": "Heading",
+            "Speed": "Speed",
+            "Gentime": "Gentime"
+        }
+        with open(input) as in_file:
+            reader = csv.DictReader(in_file)
+            data = [{key: float(val) if val != "" else None for key, val in r.items()} for r in reader]
+            result = anonymize_journey(data, key_mapping, config_overrides)
+        with open(expected) as exp_file:
+            reader = csv.DictReader(exp_file)
+            expected = [{key: float(val) if val != "" else None for key, val in r.items()} for r in reader]
+            self.assertAlmostEqual(result, expected)
 
-    @file_data("data/cvdi.yml")
-    def test_yml(self, fitfile_path, expected):
+    @file_data("data/cvdi/fitfiles.yml")
+    def test_cvdi_from_fitfile(self, fitfile_path, expected):
         data, key_mapping = _preprocess_fitfile(os.path.join(get_script_directory(), fitfile_path))
 
         result = anonymize_journey(data, key_mapping)
@@ -115,7 +132,6 @@ def _preprocess_fitfile(file_path):
                 "position_long": semicircles_to_degrees(
                     record_dict["position_long"])
             })
-            data.append(record_dict)
         else:
             print("skipping")
     return data, key_mapping
