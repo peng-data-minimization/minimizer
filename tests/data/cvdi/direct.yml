@@ -1,0 +1,10 @@
+- input: data/cvdi/csv/strict.in.csv
+  config_overrides:
+    min_direct_distance: 100
+    min_manhattan_distance: 100
+    max_direct_distance: 500
+    max_manhattan_distance: 500
+  expected: data/cvdi/csv/strict.di.csv
+- input: data/cvdi/csv/generous.in.csv
+  config_overrides: {}
+  expected: data/cvdi/csv/generous.di.csv
