@@ -4,7 +4,9 @@
     min_manhattan_distance: 50
     max_direct_distance: 200
     max_manhattan_distance: 200
+    plot_kml: 1
   expected: data/cvdi/csv/strict.di.csv
 - input: data/cvdi/csv/generous.in.csv
-  config_overrides: {}
+  config_overrides:
+    plot_kml: 1
   expected: data/cvdi/csv/generous.di.csv
