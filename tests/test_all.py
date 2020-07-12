@@ -132,7 +132,6 @@ def _preprocess_fitfile(file_path):
                 "position_long": semicircles_to_degrees(
                     record_dict["position_long"])
             })
-            data.append(record_dict)
         else:
             print("skipping")
     return data, key_mapping
