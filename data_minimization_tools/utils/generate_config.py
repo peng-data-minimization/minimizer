@@ -92,6 +92,8 @@ def generate_cvdi_config(journey: [dict], config: dict, user_overrides: dict):
         "quad_ne_lng": 10.8180638,
         "max_direct_distance": 50.0,
         "max_manhattan_distance": 50.0,
+        "min_direct_distance": 10.0,
+        "min_manhattan_distance": 10.0,
         # Things we are not going to change
         "plot_kml": 0,
         "mf_fit_ext": .5,
@@ -106,8 +108,6 @@ def generate_cvdi_config(journey: [dict], config: dict, user_overrides: dict):
         "stop_min_distance": 50.0,
         "stop_max_time": 1.0,
         "stop_max_speed": 2.5,
-        "min_direct_distance": 10.0,
-        "min_manhattan_distance": 10.0,
         "min_out_degree": 0,
         "max_out_degree": 0,
         "rand_direct_distance": 0,
