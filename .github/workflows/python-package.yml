@@ -36,6 +36,8 @@ jobs:
       uses: actions/setup-java@v1.3.0
       with:
         java-version: 11
+    - name: Make cv_di binary executable
+      run: chmod +x data_minimization_tools/cvdi/bin/cv_di
     - name: Test with pytest
       working-directory: tests
       run: |
