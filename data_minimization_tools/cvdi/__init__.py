@@ -7,7 +7,7 @@ from typing import Iterable
 from warnings import warn
 
 from data_minimization_tools.utils import check_input_type
-from data_minimization_tools.utils.generate_config import generate_cvdi_config
+from data_minimization_tools.utils import generate_cvdi_config
 
 REQUIRED_KEYS = {"Latitude", "Longitude", "Heading", "Speed",
                  "Gentime"}  # Heading should be generated / calculated later?

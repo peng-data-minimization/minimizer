@@ -6,7 +6,6 @@ from typing import Callable
 
 from numpy.random import default_rng
 
-from data_minimization_tools.cvdi import anonymize_journey
 from .utils import check_input_type
 
 
