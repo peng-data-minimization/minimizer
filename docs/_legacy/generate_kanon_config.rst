@@ -13,7 +13,3 @@ You can generate a config file, that you can use for the `data minimization spi 
 by running the following script. Note, that this configuration is specific to the tool mentioned above, but you can
 derive the rules by looking at the tasks that are created and apply them to any given conext.
 
-
-.. automodule:: data_minimization_tools.utils.generate_config
-    :members:
-

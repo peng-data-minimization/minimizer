@@ -19,7 +19,6 @@ to any given data input (well, as long as its a list of dictionaries).
 
    api_reference/api_reference
 
-
 Indices and tables
 ==================
 
