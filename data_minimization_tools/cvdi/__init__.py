@@ -10,11 +10,33 @@ from data_minimization_tools.utils import check_input_type
 from data_minimization_tools.utils import generate_cvdi_config
 
 REQUIRED_KEYS = {"Latitude", "Longitude", "Heading", "Speed",
-                 "Gentime"}  # Heading should be generated / calculated later?
+                 "Gentime"}  #: The keys required to be present in the input data for de-identification to work.
 
 
 @check_input_type
-def anonymize_journey(data: [dict], original_to_cvdi_key: dict, config_overrides=None):
+def anonymize_journey(data: [dict], original_to_cvdi_key: dict, config_overrides: dict = None) -> [dict]:
+    """
+    Anonymize a journey using the `U.S. DoT's Privacy Protection Application <https://github.com/usdot-its-jpo-data-portal/privacy-protection-application>`_.
+
+    Some of the waypoints in the input will not be present in the output, the rest will have `only` their geodata (see
+    :py:data:`REQUIRED_KEYS`) altered. Any additional attributes of the points that were not dropped from the output
+    will remain unchanged.
+
+    Because the de-identification algorithm relies_ on knowledge of the roads along a journey, a so-called `quad file`
+    must be provided. Generate_ such a file named "quad" and place it in ``./cvdi-conf/`` (relative to the script's working
+    directory).
+
+    .. _relies: https://github.com/usdot-its-jpo-data-portal/privacy-protection-application/blob/master/docs/cvdi-user-manual.md#map-preprocessing
+    .. _generate: https://github.com/usdot-its-jpo-data-portal/privacy-protection-application/blob/master/docs/cvdi-user-manual.md#workflow-outline
+
+    :param data: input data as list of dicts.
+    :param original_to_cvdi_key: Mapping of the input data's fields to the fields required by the de-identification
+        algorithm, e.g., ``{"lat": "Latitude", ...}``, where ``lat`` is part of the input data. For the list of required
+        fields, see :py:data:`REQUIRED_KEYS`.
+    :param config_overrides: Overrides to the de-identification application's settings. For example, to increase the
+        length of privacy intervals to 300m, provide ``{"max_direct_distance": 300, "max_manhattan_distance: 300}``.
+    :return: A new, shorter, list of dictionaries representing the waypoints of the de-identified journey.
+    """
     if config_overrides is None:
         config_overrides = {}
 
