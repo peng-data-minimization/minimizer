@@ -3,14 +3,11 @@ import inspect
 import os
 import unittest
 
-import pandas as pd
-from cn.protect.hierarchy import OrderHierarchy
 from ddt import ddt, data, unpack, file_data
 from fitparse import FitFile
 
 from data_minimization_tools import reduce_to_median, reduce_to_nearest_value, drop_keys
 from data_minimization_tools.cvdi import anonymize_journey
-from data_minimization_tools.utils.generate_config import generate_kanon_config
 
 
 @ddt
@@ -47,6 +44,7 @@ class MyTestCase(unittest.TestCase):
             {"A": 5, "B": 6, "C": 7},
             {"A": 5, "B": -12, "C": 7},
             {"A": 5, "B": 0, "C": 7}]})
+    
     def test_nearest_number(self, test_data, expected):
         self.assertEqual(reduce_to_nearest_value(test_data, ["B"], step_width=3), expected)
 
@@ -68,21 +66,21 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(drop_keys(test_data, ["A", "C.A", "C[].A", "C.C.A"]), expected)
         self.assertEqual(drop_keys(test_data, ["X", "X.X", "C.X", "A[]", "A[].", "A[].X", "X[].X"]), test_data)
 
-    @file_data("data/kanon.yml")
-    def test_kanon(self, expected: dict):
-        sample = pd.read_csv(os.path.join(get_script_directory(), "data/example-activity.csv"))
-        cn_config = {
-            "start_latitude": ("quasi", OrderHierarchy("interval", 1, 2, 4)),
-            "start_longitude": ("quasi", OrderHierarchy("interval", 1, 2, 4)),
-            "external_id": ("identifying", None)
-        }
-
-        actual = generate_kanon_config(sample, 2, cn_config)
-
-        for a_function, e_function in zip(actual["tasks"], expected):
-            self.assertEqual(a_function["name"][:len(e_function["name"])], e_function["name"])
-            del a_function["name"], e_function["name"]
-        self.assertEqual(actual, {"tasks": expected})
+    # @file_data("data/kanon.yml")
+    # def test_kanon(self, expected: dict):
+    #     sample = pd.read_csv(os.path.join(get_script_directory(), "data/example-activity.csv"))
+    #     cn_config = {
+    #         "start_latitude": ("quasi", OrderHierarchy("interval", 1, 2, 4)),
+    #         "start_longitude": ("quasi", OrderHierarchy("interval", 1, 2, 4)),
+    #         "external_id": ("identifying", None)
+    #     }
+    #
+    #     actual = generate_kanon_config(sample, 2, cn_config)
+    #
+    #     for a_function, e_function in zip(actual["tasks"], expected):
+    #         self.assertEqual(a_function["name"][:len(e_function["name"])], e_function["name"])
+    #         del a_function["name"], e_function["name"]
+    #     self.assertEqual(actual, {"tasks": expected})
 
     @file_data("data/cvdi/direct.yml")
     def test_cvdi_directly(self, input, config_overrides, expected):
