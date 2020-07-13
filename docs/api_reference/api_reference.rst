@@ -4,5 +4,9 @@ This is the complete list of all the functionalities that the data minimization 
 All methods expect a list of dictionaries as input.
 
 .. automodule:: data_minimization_tools
-    :members:
+	:members:
+
+.. autofunction:: data_minimization_tools.cvdi.anonymize_journey
+
+.. autodata:: data_minimization_tools.cvdi.REQUIRED_KEYS
 
