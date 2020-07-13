@@ -18,6 +18,7 @@ to any given data input (well, as long as its a list of dictionaries).
    :caption: Contents:
 
    api_reference/api_reference
+   api_reference/cvdi
 
 Indices and tables
 ==================
