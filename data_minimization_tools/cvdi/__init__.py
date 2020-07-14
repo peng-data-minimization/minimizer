@@ -170,7 +170,7 @@ def _prepare_dicts_for_cvdi_consumption(data: [dict], geodata_key_map: dict):
         "RxDevice": 1,
         "FileId": 1,
         **{cvdi_key: original_item[original_key] for original_key, cvdi_key in geodata_key_map.items()}
-    } for original_item in data]
+    } for original_item in data if all(original_key in original_item for original_key in geodata_key_map)]
 
 
 def _revert_dict_preparation_for_cvdi_consumption(cvdi_output: [dict], original_data: [dict], geodata_key_map: dict) -> \
