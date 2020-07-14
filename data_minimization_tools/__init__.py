@@ -9,6 +9,10 @@ from numpy.random import default_rng
 from .utils import check_input_type
 
 
+def make_geo_point(data: [dict]):
+    return [{**item, "location": f"{item['position_lat']},{item['position_long']}"} for item in data]
+
+
 @check_input_type
 def drop_keys(data: [dict], keys):
     """
