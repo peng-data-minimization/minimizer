@@ -6,11 +6,10 @@ from typing import Callable
 
 from numpy.random import default_rng
 
+from .cvdi import anonymize_journey
 from .utils import check_input_type
 
-
-def make_geo_point(data: [dict]):
-    return [{**item, "location": f"{item['position_lat']},{item['position_long']}"} for item in data]
+anonymize_journey.__doc__
 
 
 @check_input_type
