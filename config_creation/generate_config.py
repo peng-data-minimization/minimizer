@@ -41,10 +41,10 @@ def generate_kanon_config(sample: pd.DataFrame, k: int, cn_config: dict):
         tasks[f"{signature}-{uuid.uuid4()}"] = kwargs
 
     for prop_name, (identifying, hierarchy) in cn_config.items():
-        if hierarchy is None:
-            if private[prop_name][0] == "*":
-                add_subtask("drop_keys", keys=[prop_name])
-            # no anonymization applied - do nothing
+        if private[prop_name][0] == "*":
+            add_subtask("drop_keys", keys=[prop_name])
+        elif hierarchy is None:
+            pass  # no anonymization applied - do nothing
         elif isinstance(hierarchy, OrderHierarchy):
             lower, upper = [float(bound) for bound in private[prop_name][0][1:-1].split(",")]
             add_subtask("reduce_to_nearest_value", keys=[prop_name], step_width=upper - lower)
@@ -92,6 +92,7 @@ if __name__ == "__main__":
     parser.add_argument("-k", required=True, help="k for k-anonymity.")
     parser.add_argument("--cn-config", required=True, help="name of the py file with initial configuration for "
                                                            "CN-protect library.")
+    parser.add_argument("--topics", nargs=2, help="the names of the in- and the output topic.")
 
     args = parser.parse_args()
 
