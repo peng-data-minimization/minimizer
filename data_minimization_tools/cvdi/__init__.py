@@ -57,8 +57,8 @@ def anonymize_journey(data: [dict], original_to_cvdi_key: dict, config_overrides
         processed_data = read_results(out_dir)
 
         return _revert_dict_preparation_for_cvdi_consumption(processed_data, data, original_to_cvdi_key)
-    except Exception:
-        print(Exception)
+    except Exception as err:
+        print(err)
         return []
 
 
