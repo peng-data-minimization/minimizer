@@ -9,9 +9,10 @@ setup(name='data_minimization_tools',
       url='https://github.com/peng-data-minimization/minimizer',
       author='peng-data-minimization',
       long_description=long_description,
-      long_description_content_type = "text/markdown",
+      long_description_content_type="text/markdown",
       author_email='peng.dataminimization@gmail.com',
       license='MIT',
       packages=['data_minimization_tools', 'data_minimization_tools.utils', 'data_minimization_tools.cvdi'],
-      install_requires=['numpy', 'PyYAML', 'pandas']
+      install_requires=['numpy', 'PyYAML', 'pandas'],
+      include_package_data=True
       )
