@@ -37,25 +37,29 @@ def anonymize_journey(data: [dict], original_to_cvdi_key: dict, config_overrides
         length of privacy intervals to 300m, provide ``{"max_direct_distance": 300, "max_manhattan_distance: 300}``.
     :return: A new, shorter, list of dictionaries representing the waypoints of the de-identified journey.
     """
-    if config_overrides is None:
-        config_overrides = {}
+    try:
+        if config_overrides is None:
+            config_overrides = {}
 
-    validate_key_mapping(original_to_cvdi_key)
+        validate_key_mapping(original_to_cvdi_key)
 
-    script_abs_directory = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-    current_working_directory = os.getcwd()
-    executable_path = os.path.join(script_abs_directory, "bin/cv_di")
-    config_dir, out_dir = make_directories(current_working_directory)
+        script_abs_directory = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+        current_working_directory = os.getcwd()
+        executable_path = os.path.join(script_abs_directory, "bin/cv_di")
+        config_dir, out_dir = make_directories(current_working_directory)
 
-    write_data(config_dir, data, original_to_cvdi_key)
-    write_config(config_dir, config_overrides, data, original_to_cvdi_key)
+        write_data(config_dir, data, original_to_cvdi_key)
+        write_config(config_dir, config_overrides, data, original_to_cvdi_key)
 
-    cvdi_process = run_cvdi(executable_path, config_dir, out_dir)
-    check_process_logs(cvdi_process)
+        cvdi_process = run_cvdi(executable_path, config_dir, out_dir)
+        check_process_logs(cvdi_process)
 
-    processed_data = read_results(out_dir)
+        processed_data = read_results(out_dir)
 
-    return _revert_dict_preparation_for_cvdi_consumption(processed_data, data, original_to_cvdi_key)
+        return _revert_dict_preparation_for_cvdi_consumption(processed_data, data, original_to_cvdi_key)
+    except Exception:
+        print(Exception)
+        return []
 
 
 def validate_key_mapping(original_to_cvdi_key):
@@ -111,6 +115,8 @@ def make_directories(current_working_directory):
 
 def write_data(config_dir, data, original_to_cvdi_key):
     data_for_cvdi = _prepare_dicts_for_cvdi_consumption(data, original_to_cvdi_key)
+    if len(data_for_cvdi) == 0:
+        raise Exception("No data was sent to cv-di.")
     with open(os.path.join(config_dir, "THE_FILE.csv"), "w+") as data_file:
         fieldnames = [key for key in data_for_cvdi[0]]
         writer = csv.DictWriter(data_file, fieldnames, dialect=csv.excel)
