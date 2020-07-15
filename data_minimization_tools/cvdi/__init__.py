@@ -137,10 +137,10 @@ def write_config(config_dir, cvdi_overrides, data, original_to_cvdi_key):
 def check_process_logs(process):
     if process.stderr[-106:-93] == b"0,0,0,0,0,0,0":
         raise Exception(f"CV-DI processed exactly 0 lines, "
-                        f"message was: {process.stderr.splitlines()[-5]}")
+                        f"message was: {process.stderr.splitlines()}")
     if process.stderr[-95:-93] == b",0":
         raise Exception(f"CV-DI produced exactly 0 points as part of a privacy interval, "
-                        f"message was: {process.stderr.splitlines()[-5]}")
+                        f"message was: {process.stderr.splitlines()}")
 
 
 def _prepare_dicts_for_cvdi_consumption(data: [dict], geodata_key_map: dict):
