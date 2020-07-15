@@ -4,7 +4,7 @@ import pandas as pd
 import yaml
 
 
-def generate_kanon_config(sample: pd.DataFrame, k: int, cn_config: dict):
+def generate_kanon_config(sample: pd.DataFrame, k: int, cn_config: dict, topics: tuple):
     """
     Generate a config that contains a set of rules that guarantee k-anonymity on a given dataset. Use these rules
     to apply them to a stream of data.
@@ -59,19 +59,23 @@ def generate_kanon_config(sample: pd.DataFrame, k: int, cn_config: dict):
             print("Warning: Unsupported hierarchy type " + str(type(hierarchy)))
 
     worker_config = {
-        "tasks": [{
-            "name": task_name,
-            "input_topic": ":REPLACEME:",
+        "task_defaults": {
             "input_offset_reset": "earliest",
             "topic_encoding": "utf8",
-            "storage_mode": "memory",
-            "output_topic": ":REPLACEME:",
+            "storage_mode": "memory"
+        },
+        "tasks": [{
+            "name": task_name,
             "function": {
                 "signature": task_name.split("-")[0],
                 "args": task_config
             }
         } for task_name, task_config in tasks.items()]
     }
+    worker_config["tasks"][0]["input_topic"] = topics[0]
+    for task, previous_task in zip(worker_config["tasks"][1:], worker_config["tasks"]):
+        task["input_topic"] = previous_task["output_topic"] = f"{uuid.uuid4()}"
+    worker_config["tasks"][-1]["output_topic"] = topics[1]
 
     print(textwrap.dedent("""
         To configure k-anonymity in your data processing pipeline, include the following 
@@ -92,10 +96,10 @@ if __name__ == "__main__":
     parser.add_argument("-k", required=True, help="k for k-anonymity.")
     parser.add_argument("--cn-config", required=True, help="name of the py file with initial configuration for "
                                                            "CN-protect library.")
-    parser.add_argument("--topics", nargs=2, help="the names of the in- and the output topic.")
+    parser.add_argument("--topics", nargs=2, required=True, help="the names of the in- and the output topic.")
 
     args = parser.parse_args()
 
     cn_config = importlib.import_module("kanon_cn_config").cn_config
 
-    generate_kanon_config(pd.read_csv(args.sample_data), args.k, cn_config)
+    generate_kanon_config(pd.read_csv(args.sample_data), args.k, cn_config, tuple(args.topics))
